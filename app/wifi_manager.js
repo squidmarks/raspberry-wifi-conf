@@ -3,6 +3,7 @@ var _       = require("underscore")._,
     fs      = require("fs"),
     exec    = require("child_process").exec,
     config  = require("../config.json");
+    http    = require("http-request");
 
 // Better template format
 _.templateSettings = {
@@ -128,6 +129,14 @@ module.exports = function() {
             return callback(null, _is_wifi_enabled_sync(info));
         });
     },
+    
+    _is_wifi_working = function (callback) {
+        // FIXME: Should be hitting upbed webapp here...
+        http.get('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY', function (error, result) {
+            console.log ('GET code:', result.code);
+            callback (error, result);
+        });
+    }
 
     // Access Point related functions
     _is_ap_enabled_sync = function(info) {
@@ -247,11 +256,6 @@ module.exports = function() {
         _is_wifi_enabled(function(error, result_ip) {
             if (error) return callback(error);
 
-            if (result_ip) {
-                console.log("\nWifi connection is enabled with IP: " + result_ip);
-                return callback(null);
-            }
-
             async.series([
 
                 // Update /etc/network/interface with correct info...
@@ -286,6 +290,7 @@ module.exports = function() {
 
         is_wifi_enabled:         _is_wifi_enabled,
         is_wifi_enabled_sync:    _is_wifi_enabled_sync,
+        is_wifi_working:         _is_wifi_working,
 
         is_ap_enabled:           _is_ap_enabled,
         is_ap_enabled_sync:      _is_ap_enabled_sync,

@@ -2,6 +2,7 @@ var async               = require("async"),
     wifi_manager        = require("./app/wifi_manager")(),
     dependency_manager  = require("./app/dependency_manager")(),
     config              = require("./config.json");
+    http                = require("http-request");
 
 /*****************************************************************************\
     1. Check for dependencies
@@ -27,19 +28,6 @@ async.series([
             "files":    ["/etc/init.d/isc-dhcp-server"]
         }, function(error) {
             if (error) console.log(" * Dependency error, did you run `sudo npm run-script provision`?");
-            next_step(error);
-        });
-    },
-
-    // 2. Check if wifi is enabled / connected
-    function test_is_wifi_enabled(next_step) {
-        wifi_manager.is_wifi_enabled(function(error, result_ip) {
-            if (result_ip) {
-                console.log("\nWifi is enabled, and IP " + result_ip + " assigned");
-                process.exit(0);
-            } else {
-                console.log("\nWifi is not enabled, Enabling AP for self-configure");
-            }
             next_step(error);
         });
     },
