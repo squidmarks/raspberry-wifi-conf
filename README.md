@@ -1,30 +1,17 @@
 # raspberry-wifi-conf
 
-A Node application which makes connecting your RaspberryPi to your home wifi easier
-
-## Why?
-
-When unable to connect to a wifi network, this service will turn the RPI into a wireless AP. This allows us to connect to it via a phone or other device and configure our home wifi network (for example).
-
-Once configured, it prompts the PI to reboot with the appropriate wifi credentials. If this process fails, it immediately re-enables the PI as an AP which can be configurable again.
-
-This project broadly follows these [instructions](http://www.maketecheasier.com/set-up-raspberry-pi-as-wireless-access-point/) in setting up a RaspberryPi as a wireless AP.
+A Node application which exposes a REST API for configuring WiFi
 
 ## Requirements
 
 The NodeJS modules required are pretty much just `underscore`, `async`, and `express`. 
 
-The web application requires `angular` and `font-awesome` to render correctly. To make the deployment of this easy, one of the other requirements is `bower`.
-
-If you do not have `bower` installed already, you can install it globally by running: `sudo npm install bower -g`.
-
 ## Install
 
 ```sh
-$git clone git@github.com:sabhiram/raspberry-wifi-conf.git
+$git clone git@github.com:mdgagne/raspberry-wifi-conf.git
 $cd raspberry-wifi-conf
 $npm update
-$bower install
 $sudo npm run-script provision
 $sudo npm start
 ```
@@ -83,30 +70,3 @@ Note that this is run in a blocking fashion, in that this script will have to ex
 cd /home/pi/raspberry-wifi-conf
 sudo /usr/bin/node server.js < /dev/null &
 ```
-
-## User Interface
-
-In my config file, I have set up the static ip for my PI when in AP mode to `192.168.44.1` and the AP's broadcast SSID to `rpi-config-ap`. These are images captured from my osx dev box.
-
-Step 1: Power on Pi which runs this app on startup (assume it is not configured for a wifi connection). Once it boots up, you will see `rpi-config-ap` among the wifi connections.  The password is configured in config.json.
-
-<img src="https://raw.githubusercontent.com/sabhiram/public-images/master/raspberry-wifi-conf/wifi_options.png" width="200px" height="160px" />
-
-Step 2: Join the above network, and navigate to the static IP and port we set in config.json (`http://192.168.44.1:88`), you will see:
-
-<img src="https://raw.githubusercontent.com/sabhiram/public-images/master/raspberry-wifi-conf/ui.png" width="404px" height="222px" />
-
-Step 3: Select your home (or whatever) network, punch in the wifi passcode if any, and click `Submit`. You are done! Your Pi is now on your home wifi!!
-
-## Testing
-
-TODO
-
-## TODO
-
-1. Automate the deployment of alternate `hostapd` application
-2. Automate provisioning of the application dependencies
-3. Make the running of scripts cleaner and more easy to read
-4. ifup should never be allowed to fail... same w/ the "start" pieces of various services. Perhaps we need to tease the restart into stop and start and allow the stop to fail.
-5. Add tests
-6. Add travis ci / coveralls hook(s)
