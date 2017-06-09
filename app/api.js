@@ -2,22 +2,24 @@ var path       = require("path"),
     util       = require("util"),
     iwlist     = require("./iwlist"),
     express    = require("express"),
-    bodyParser = require('body-parser'),
+    bodyParser = require("body-parser"),
+    fs         = require("fs"),
     config     = require("../config.json"),
     http_test  = config.http_test_only,
+    
     http_server;
 // Helper function to log errors and send a generic status "SUCCESS"
 // message to the caller
-function log_error_send_success_with(success_obj, error, response) {
+function log_error_send_success_with(success_obj, error, res) {
     if (error) {
         console.log("ERROR: " + error);
-        response.send({ status: "ERROR", error: error });
+        res.send({ status: "ERROR", error: error });
     } else {
         success_obj = success_obj || {};
         success_obj["status"] = "SUCCESS";
-        response.send(success_obj);
+        res.send(success_obj);
     }
-    response.end();
+    res.end();
 }
 
 /*****************************************************************************\
@@ -36,8 +38,9 @@ module.exports = function(wifi_manager, callback) {
     // Setup HTTP routes for various APIs we wish to implement
     // the responses to these are typically JSON
     app.get("/api/hub/config", function(req, res) {
-        console.log("Server got /config");
+        console.log("Server GET /api/hub/config");
         iwlist(function(error, iw_result) {
+            console.log (iw_result);
             var msg = {
                 hub_name : config.hub_name,
                 result : error ? "failure" : "success",
@@ -48,26 +51,25 @@ module.exports = function(wifi_manager, callback) {
         });
     });
 
-    app.post("/api/hub/config", function(request, response) {
-        var msg = {
-            success : false
-        };
-        
+    app.post("/api/hub/config", function(req, res) {
+        console.log("Server POST /api/hub/config");
         // Validate expected json body members
-        if (!request.body.hub_name || !request.body.wifi_ssid || !request.body.wifi_passcode) {
-            response.json (msg);
+        if (req.body.hub_name === undefined || !req.body.wifi_ssid === undefined || !req.body.wifi_passcode === undefined) {
+            res.status (400);
+            res.send ('invalid syntax');
             return;
         }
         
-        // Updated hub and ssid based on the supplied hub name
-        config.ssid = request.body.hub_name;
-        config.hub_name = request.body.hub_name;
-
+        // Update hub and ssid based on the supplied hub name
+        config.hub_name = req.body.hub_name;
+        config.access_point.ssid = req.body.hub_name;
+        fs.writeFileSync ('config.json', JSON.stringify (config, null, 3), 'utf8');
+        
         // TODO: If wifi did not come up correctly, it should fail
         // currently we ignore ifup failures.
         var conn_info = {
-            wifi_ssid:      request.body.wifi_ssid,
-            wifi_passcode:  request.body.wifi_passcode,
+            wifi_ssid:      req.body.wifi_ssid,
+            wifi_passcode:  req.body.wifi_passcode,
         };
 
         wifi_manager.enable_wifi_mode(conn_info, function(error) {
@@ -77,13 +79,15 @@ module.exports = function(wifi_manager, callback) {
                 wifi_manager.enable_ap_mode(config.access_point.ssid, function(error) {
                     console.log("... AP mode reset");
                 });
-                response.send(msg);
+                
+                res.status (400);
+                res.send ('failed to enable wifi');
             }
             
             // Success! - exit in 3 seconds
             console.log ("Hub configuration update successful - exitting.");
-            msg.success = true;
-            response.json (msg);
+            res.status (200);
+            res.send ('success');
             setTimeout (function () {process.exit ();}, 3000);
         });
         
