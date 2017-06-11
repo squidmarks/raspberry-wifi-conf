@@ -5,7 +5,7 @@
     "access_point": {
         "force_reconfigure": true,
         "wifi_interface":    "wlan0",
-        "ssid":              "rpi-config-ap",
+        "ssid":              "rowbot-ap",
         "passphrase":        "zzzzzzzz",
         "domain":            "rpi.config",
         "ip_addr":           "192.168.44.1",
@@ -19,6 +19,6 @@
     },
 
     "server": {
-        "port": 88
+        "port": 80
     }
 }
